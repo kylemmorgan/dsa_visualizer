@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Linked List Visualizer — Architecture</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: #111318;
+    color: #d4d4d8;
+    font-family: 'Inter', sans-serif;
+    padding: 56px 32px;
+    max-width: 780px;
+    margin: 0 auto;
+    line-height: 1.6;
+  }
+
+  h1 { font-size: 28px; font-weight: 600; letter-spacing: -0.02em; margin-bottom: 6px; color: #f0f0f2; }
+  .subtitle { color: #555; font-size: 14px; margin-bottom: 48px; }
+
+  .section { margin-bottom: 40px; }
+  .section-title {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: #444;
+    margin-bottom: 16px;
+  }
+
+  /* PILLS */
+  .pills { display: flex; flex-wrap: wrap; gap: 8px; }
+  .pill {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    padding: 5px 12px;
+    border-radius: 4px;
+    background: #1a1d24;
+    border: 1px solid #2a2d36;
+    color: #aaa;
+  }
+
+  /* DIRECTORY */
+  .dir-card {
+    background: #1a1d24;
+    border: 1px solid #2a2d36;
+    border-radius: 8px;
+    padding: 20px 24px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    line-height: 2;
+  }
+  .dir-folder { color: #888; }
+  .dir-row { display: flex; align-items: center; gap: 10px; padding-left: 16px; }
+  .dir-file { color: #c4c4c8; }
+  .dir-spacer { padding-left: 16px; height: 8px; display: block; }
+  .tag {
+    font-size: 10px;
+    padding: 1px 7px;
+    border-radius: 3px;
+    line-height: 1.6;
+  }
+  .tag-ds    { background: rgba(124,106,247,0.15); color: #9d8ff7; border: 1px solid rgba(124,106,247,0.25); }
+  .tag-state { background: rgba(106,184,247,0.15); color: #7ec8f7; border: 1px solid rgba(106,184,247,0.25); }
+  .tag-hook  { background: rgba(247,196,106,0.15); color: #f7c46a; border: 1px solid rgba(247,196,106,0.25); }
+  .tag-ui    { background: rgba(247,106,138,0.15); color: #f78aa0; border: 1px solid rgba(247,106,138,0.25); }
+
+  /* LAYERS */
+  .layers { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  @media (max-width: 560px) { .layers { grid-template-columns: 1fr; } }
+
+  .layer {
+    background: #1a1d24;
+    border: 1px solid #2a2d36;
+    border-radius: 8px;
+    padding: 20px;
+  }
+  .layer.ds    { border-left: 3px solid #7c6af7; }
+  .layer.state { border-left: 3px solid #6ab8f7; }
+  .layer.hook  { border-left: 3px solid #f7c46a; }
+  .layer.ui    { border-left: 3px solid #f76a8a; }
+
+  .layer-name { font-size: 13px; font-weight: 600; margin-bottom: 4px; }
+  .layer.ds .layer-name    { color: #9d8ff7; }
+  .layer.state .layer-name { color: #7ec8f7; }
+  .layer.hook .layer-name  { color: #f7c46a; }
+  .layer.ui .layer-name    { color: #f78aa0; }
+
+  .layer-files {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: #444;
+    margin-bottom: 8px;
+  }
+  .layer-desc { font-size: 13px; color: #666; }
+
+  /* CONCEPT */
+  .concept {
+    background: #1a1d24;
+    border: 1px solid #2a2d36;
+    border-radius: 8px;
+    padding: 20px 24px;
+  }
+  .concept p { font-size: 13px; color: #666; margin-bottom: 12px; }
+  .concept p:last-of-type { margin-bottom: 0; }
+  pre {
+    background: #13151a;
+    border: 1px solid #2a2d36;
+    border-radius: 6px;
+    padding: 14px 16px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    line-height: 1.8;
+    color: #888;
+    overflow-x: auto;
+    margin-top: 14px;
+  }
+
+  /* PHASES */
+  .phase-list { display: flex; flex-direction: column; }
+  .phase {
+    display: grid;
+    grid-template-columns: 32px 1fr;
+    gap: 16px;
+    padding-bottom: 24px;
+    position: relative;
+  }
+  .phase:not(:last-child)::before {
+    content: '';
+    position: absolute;
+    left: 15px; top: 28px; bottom: 0;
+    width: 1px;
+    background: #2a2d36;
+  }
+  .phase-num {
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    background: #1a1d24;
+    border: 1px solid #2a2d36;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px; font-weight: 600;
+    color: #555;
+    flex-shrink: 0;
+  }
+  .phase-body { padding-top: 5px; }
+  .phase-title { font-size: 14px; font-weight: 600; margin-bottom: 3px; color: #c4c4c8; }
+  .phase-desc { font-size: 13px; color: #555; }
+
+  /* APPROACH */
+  .approach {
+    background: #1a1d24;
+    border: 1px solid #2a2d36;
+    border-radius: 8px;
+    padding: 20px 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+  .approach-item { display: flex; gap: 16px; }
+  .approach-num {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: #333;
+    padding-top: 2px;
+    flex-shrink: 0;
+    width: 16px;
+  }
+  .approach-body {}
+  .approach-title { font-size: 13px; font-weight: 600; color: #c4c4c8; margin-bottom: 3px; }
+  .approach-desc { font-size: 13px; color: #555; }
+</style>
+</head>
+<body>
+
+  <h1>Linked List Visualizer</h1>
+  <p class="subtitle">Architecture overview — React web app with real DS implementations</p>
+
+  <div class="section">
+    <div class="section-title">Tech Stack</div>
+    <div class="pills">
+      <span class="pill">React</span>
+      <span class="pill">Tailwind CSS</span>
+      <span class="pill">Framer Motion</span>
+      <span class="pill">Zustand</span>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Directory Structure</div>
+    <div class="dir-card">
+      <div class="dir-folder">src/</div>
+      <div class="dir-row"><span class="dir-folder">ds/</span></div>
+      <div class="dir-row" style="padding-left:32px"><span class="dir-file">SinglyLinkedList.js</span><span class="tag tag-ds">DS</span></div>
+      <div class="dir-row" style="padding-left:32px"><span class="dir-file">DoublyLinkedList.js</span><span class="tag tag-ds">DS</span></div>
+      <span class="dir-spacer"></span>
+      <div class="dir-row"><span class="dir-folder">store/</span></div>
+      <div class="dir-row" style="padding-left:32px"><span class="dir-file">useListStore.js</span><span class="tag tag-state">STATE</span></div>
+      <span class="dir-spacer"></span>
+      <div class="dir-row"><span class="dir-folder">hooks/</span></div>
+      <div class="dir-row" style="padding-left:32px"><span class="dir-file">useListOperations.js</span><span class="tag tag-hook">HOOK</span></div>
+      <span class="dir-spacer"></span>
+      <div class="dir-row"><span class="dir-folder">components/</span></div>
+      <div class="dir-row" style="padding-left:32px"><span class="dir-file">ListCanvas.jsx</span><span class="tag tag-ui">UI</span></div>
+      <div class="dir-row" style="padding-left:32px"><span class="dir-file">NodeCard.jsx</span><span class="tag tag-ui">UI</span></div>
+      <div class="dir-row" style="padding-left:32px"><span class="dir-file">Arrow.jsx</span><span class="tag tag-ui">UI</span></div>
+      <div class="dir-row" style="padding-left:32px"><span class="dir-file">ControlPanel.jsx</span><span class="tag tag-ui">UI</span></div>
+      <div class="dir-row" style="padding-left:32px"><span class="dir-file">StepLog.jsx</span><span class="tag tag-ui">UI</span></div>
+      <span class="dir-spacer"></span>
+      <div class="dir-row"><span class="dir-file">App.jsx</span></div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Architecture Layers</div>
+    <div class="layers">
+      <div class="layer ds">
+        <div class="layer-name">Data Structure</div>
+        <div class="layer-files">SinglyLinkedList.js · DoublyLinkedList.js</div>
+        <div class="layer-desc">Pure JS classes. Real pointer-based logic. No React. Returns snapshots of each step.</div>
+      </div>
+      <div class="layer state">
+        <div class="layer-name">State</div>
+        <div class="layer-files">useListStore.js</div>
+        <div class="layer-desc">Zustand store holding the flat array of node objects that React renders.</div>
+      </div>
+      <div class="layer hook">
+        <div class="layer-name">Operations</div>
+        <div class="layer-files">useListOperations.js</div>
+        <div class="layer-desc">Calls the DS class, gets snapshots back, plays them through the store with timed delays.</div>
+      </div>
+      <div class="layer ui">
+        <div class="layer-name">UI Components</div>
+        <div class="layer-files">ListCanvas · NodeCard · Arrow · ControlPanel · StepLog</div>
+        <div class="layer-desc">Renders and animates the list. Narrates each step in plain language.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Key Concept — Snapshot Animation</div>
+    <div class="concept">
+      <p>Each DS operation returns an array of snapshots — the full list state at each meaningful step. A playback engine steps through them with a delay, so the UI animates the algorithm frame by frame.</p>
+      <p>This keeps algorithm logic completely separate from animation, and makes speed controls or manual step-through trivial to add later.</p>
+      <pre>// each snapshot looks like this
+{ nodes: [...], highlightedId: 'node-3', message: 'Value not found, moving on...' }
+
+// node shape in the store
+{ id: 'uuid', value: 42, next: 'uuid' | null, prev: 'uuid' | null }</pre>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Build Phases</div>
+    <div class="phase-list">
+      <div class="phase">
+        <div class="phase-num">1</div>
+        <div class="phase-body">
+          <div class="phase-title">Static Rendering</div>
+          <div class="phase-desc">Hardcode a list and get nodes rendering with arrows. No operations yet.</div>
+        </div>
+      </div>
+      <div class="phase">
+        <div class="phase-num">2</div>
+        <div class="phase-body">
+          <div class="phase-title">Operations Without Animation</div>
+          <div class="phase-desc">Wire up DS classes and controls. Operations snap to end state immediately.</div>
+        </div>
+      </div>
+      <div class="phase">
+        <div class="phase-num">3</div>
+        <div class="phase-body">
+          <div class="phase-title">Step-by-Step Animation</div>
+          <div class="phase-desc">Add snapshot generation and the playback engine. The hardest and most rewarding phase.</div>
+        </div>
+      </div>
+      <div class="phase">
+        <div class="phase-num">4</div>
+        <div class="phase-body">
+          <div class="phase-title">Doubly Linked List</div>
+          <div class="phase-desc">Add the doubly linked list class and update arrows to show bidirectional pointers.</div>
+        </div>
+      </div>
+      <div class="phase">
+        <div class="phase-num">5</div>
+        <div class="phase-body">
+          <div class="phase-title">Polish</div>
+          <div class="phase-desc">Speed controls, manual stepping, edge cases, mobile layout.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">How to Approach This Project</div>
+    <div class="approach">
+      <div class="approach-item">
+        <div class="approach-num">01</div>
+        <div class="approach-body">
+          <div class="approach-title">Build the DS classes first, completely separate from React</div>
+          <div class="approach-desc">Write SinglyLinkedList.js as a plain JS class in isolation. Test it in the browser console. Make sure insert, delete, and search all work correctly with real pointers before you ever think about rendering anything.</div>
+        </div>
+      </div>
+      <div class="approach-item">
+        <div class="approach-num">02</div>
+        <div class="approach-body">
+          <div class="approach-title">Resist the urge to look things up too quickly</div>
+          <div class="approach-desc">Try to reason through it from first principles first — what does a node need? What happens to pointers when you insert in the middle? What's the edge case when deleting the head? Struggling through that thinking is where the learning happens.</div>
+        </div>
+      </div>
+      <div class="approach-item">
+        <div class="approach-num">03</div>
+        <div class="approach-body">
+          <div class="approach-title">Use the React side as a reward, not a crutch</div>
+          <div class="approach-desc">Once your DS class works correctly in isolation, building the visualizer becomes a fun way to prove your implementation is correct. If the animation shows something wrong, you have a bug in your DS class — the UI becomes your test suite.</div>
+        </div>
+      </div>
+      <div class="approach-item">
+        <div class="approach-num">04</div>
+        <div class="approach-body">
+          <div class="approach-title">Pay attention to edge cases</div>
+          <div class="approach-desc">Empty list, single node, inserting/deleting at head vs. tail vs. middle, searching for a value that doesn't exist. These are where your real understanding gets tested and where linked lists get interesting.</div>
+        </div>
+      </div>
+      <div class="approach-item">
+        <div class="approach-num">05</div>
+        <div class="approach-body">
+          <div class="approach-title">When you get to doubly linked lists, don't just copy your singly linked list</div>
+          <div class="approach-desc">Re-derive the logic. The prev pointer changes what you have to do on almost every operation, and working through that difference yourself is the whole point.</div>
+        </div>
+      </div>
+      <div class="approach-item">
+        <div class="approach-num">06</div>
+        <div class="approach-body">
+          <div class="approach-title">Finish one end-to-end before expanding scope</div>
+          <div class="approach-desc">Nail singly linked list in JS → get it rendering statically in React → add operations → add animation → then repeat for doubly. Don't build both DS classes upfront. Have a working, satisfying thing before expanding.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</body>
+</html>
